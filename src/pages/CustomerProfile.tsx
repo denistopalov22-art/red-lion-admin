@@ -26,6 +26,8 @@ export default function CustomerProfile() {
   const [editAddress, setEditAddress] = useState('');
   const [editPostcode, setEditPostcode] = useState('');
   const [savingProfile, setSavingProfile] = useState(false);
+  const [profileSaveError, setProfileSaveError] = useState('');
+  const [profileSaveSuccess, setProfileSaveSuccess] = useState(false);
 
   // Upload document state
   const [showDocModal, setShowDocModal] = useState(false);
@@ -65,6 +67,8 @@ export default function CustomerProfile() {
   async function saveProfile() {
     if (!id) return;
     setSavingProfile(true);
+    setProfileSaveError('');
+    setProfileSaveSuccess(false);
     const { error } = await supabase.from('profiles').update({
       full_name: editName || null,
       phone: editPhone || null,
@@ -72,8 +76,12 @@ export default function CustomerProfile() {
       postcode: editPostcode || null,
     }).eq('id', id);
     setSavingProfile(false);
-    if (!error) {
+    if (error) {
+      setProfileSaveError(error.message);
+    } else {
       setEditingProfile(false);
+      setProfileSaveSuccess(true);
+      setTimeout(() => setProfileSaveSuccess(false), 3000);
       load();
     }
   }
@@ -182,13 +190,15 @@ export default function CustomerProfile() {
                     <label>Postcode</label>
                     <input value={editPostcode} onChange={e => setEditPostcode(e.target.value.toUpperCase())} placeholder="AB1 2CD" />
                   </div>
+                  {profileSaveError && <div className="error-msg">{profileSaveError}</div>}
                   <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
-                    <button className="btn btn-secondary btn-sm" onClick={() => setEditingProfile(false)}>Cancel</button>
+                    <button className="btn btn-secondary btn-sm" onClick={() => { setEditingProfile(false); setProfileSaveError(''); }}>Cancel</button>
                     <button className="btn btn-primary btn-sm" onClick={saveProfile} disabled={savingProfile}>{savingProfile ? 'Saving...' : 'Save'}</button>
                   </div>
                 </div>
               ) : (
                 <>
+                  {profileSaveSuccess && <div className="success-msg" style={{ marginBottom: 10 }}>✓ Customer details saved successfully</div>}
                   <div className="info-row"><span className="key">Name</span><span className="val">{profile.full_name || '—'}</span></div>
                   <div className="info-row"><span className="key">Email</span><span className="val">{profile.email || '—'}</span></div>
                   <div className="info-row"><span className="key">Phone</span><span className="val">{profile.phone || '—'}</span></div>

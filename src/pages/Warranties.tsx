@@ -19,6 +19,7 @@ export default function Warranties() {
   const [editing, setEditing] = useState<WarrantyWithDetails | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [saveSuccess, setSaveSuccess] = useState(false);
 
   const [cvId, setCvId] = useState('');
   const [provider, setProvider] = useState('');
@@ -68,6 +69,7 @@ export default function Warranties() {
 
   async function handleSave() {
     if (!cvId || !provider || !startDate || !expiryDate) { setError('Please fill all required fields'); return; }
+    if (new Date(expiryDate) <= new Date(startDate)) { setError('Expiry date must be after the start date'); return; }
     setSaving(true);
     setError('');
     // Look up the user_id for this customer vehicle so the customer can see their warranty in the mobile app
@@ -92,6 +94,8 @@ export default function Warranties() {
     setSaving(false);
     if (err) { setError(err.message); return; }
     setShowModal(false);
+    setSaveSuccess(true);
+    setTimeout(() => setSaveSuccess(false), 3000);
     load();
   }
 
@@ -116,6 +120,7 @@ export default function Warranties() {
         </button>
       </div>
       <div className="page">
+        {saveSuccess && <div className="success-msg" style={{ marginBottom: 16 }}>✓ Warranty saved successfully</div>}
         <div className="toolbar">
           <div className="search-bar" style={{ flex: 1, maxWidth: 360 }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
