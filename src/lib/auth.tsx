@@ -9,7 +9,7 @@ interface AuthCtx {
   profile: Profile | null;
   session: Session | null;
   loading: boolean;
-  signIn: (email: string, password: string) => Promise<string | null>;
+  signIn: (email: string, password: string ) => Promise<string | null>;
   signOut: () => Promise<void>;
 }
 
@@ -21,28 +21,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  async function loadProfile(userId: string) {
-    const { data } = await supabase
+  async function loadProfile(currentSession: Session) {
+    await supabase.auth.setSession({
+      access_token: currentSession.access_token,
+      refresh_token: currentSession.refresh_token,
+    });
+    const { data, error } = await supabase
       .from('profiles')
       .select('*')
-      .eq('id', userId)
+      .eq('id', currentSession.user.id)
       .single();
-    setProfile(data);
+    if (error) {
+      console.error('loadProfile error:', error.message, error.code);
+    }
+    setProfile(data ?? null);
   }
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) loadProfile(session.user.id);
-      setLoading(false);
+    supabase.auth.getSession().then(({ data: { session: s } }) => {
+      setSession(s);
+      setUser(s?.user ?? null);
+      if (s) {
+        loadProfile(s).finally(() => setLoading(false));
+      } else {
+        setLoading(false);
+      }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) loadProfile(session.user.id);
-      else setProfile(null);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
+      setSession(s);
+      setUser(s?.user ?? null);
+      if (s) {
+        loadProfile(s);
+      } else {
+        setProfile(null);
+      }
     });
 
     return () => subscription.unsubscribe();
