@@ -11,6 +11,7 @@ export interface Profile {
   role: UserRole | null;
   push_token: string | null;
   address: string | null;
+  postcode: string | null;
   created_at: string;
   updated_at?: string | null;
 }
@@ -63,8 +64,9 @@ export interface ServiceBooking {
   customer_vehicle_id: string;
   service_type: string;
   preferred_date: string;
+  /** @deprecated Use customer_message instead */
   message: string | null;
-  customer_message?: string | null;
+  customer_message: string | null;
   status: ServiceStatus;
   admin_notes: string | null;
   created_at: string;
@@ -77,9 +79,7 @@ export interface ServiceHistory {
   mileage: number | null;
   work_done: string;
   invoice_url: string | null;
-  // Extended fields (added by migration)
   service_booking_id: string | null;
-  customer_id: string | null;
   service_type: string | null;
   description: string | null;
   parts_used: string | null;
@@ -114,10 +114,17 @@ export interface Notification {
 export interface Warranty {
   id: string;
   customer_vehicle_id: string;
+  user_id: string | null;
   provider: string;
   plan_name: string;
+  warranty_type: string | null;
   start_date: string;
+  /** Primary expiry field used across the app */
   expiry_date: string;
-  coverage_details: string[];
+  /** Legacy alias — same as expiry_date, kept for DB compatibility */
+  end_date: string | null;
+  mileage_limit: number | null;
+  coverage_details: string[] | string | null;
+  status: 'ACTIVE' | 'EXPIRED' | 'CANCELLED' | 'PENDING' | null;
   created_at: string;
 }

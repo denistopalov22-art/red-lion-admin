@@ -74,7 +74,6 @@ export default function Bookings() {
           await supabase.from('service_history').insert({
             customer_vehicle_id: cvId,
             service_booking_id: editingBooking.id,
-            customer_id: editingBooking.user_id,
             service_date: editingBooking.preferred_date || new Date().toISOString().split('T')[0],
             service_type: editingBooking.service_type,
             work_done: editNotes || editingBooking.service_type,
@@ -186,7 +185,7 @@ export default function Bookings() {
                       <td><span className="tag">{b.service_type}</span></td>
                       <td>{new Date(b.preferred_date).toLocaleDateString('en-GB')}</td>
                       <td><span className={`badge ${STATUS_COLORS[b.status] ?? 'badge-gray'}`}>{b.status}</span></td>
-                      <td style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 12, color: 'var(--text3)' }}>{b.admin_notes || b.message || '—'}</td>
+                      <td style={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 12, color: 'var(--text3)' }}>{b.customer_message || b.admin_notes || '—'}</td>
                       <td>
                         <div style={{ display: 'flex', gap: 4 }}>
                           <button className="btn btn-ghost btn-sm" onClick={() => openEdit(b)}>Edit</button>
@@ -218,7 +217,7 @@ export default function Bookings() {
                 <strong>{editingBooking.profiles?.full_name || editingBooking.profiles?.email}</strong>
                 {' · '}{editingBooking.service_type}
                 {' · '}{new Date(editingBooking.preferred_date).toLocaleDateString('en-GB')}
-                {editingBooking.message && <div style={{ marginTop: 6, color: 'var(--text3)' }}>Customer note: {editingBooking.message}</div>}
+                {editingBooking.customer_message && <div style={{ marginTop: 6, color: 'var(--text3)' }}>Customer note: {editingBooking.customer_message}</div>}
               </div>
               <div className="form-group">
                 <label>Status</label>

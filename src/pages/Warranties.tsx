@@ -70,12 +70,17 @@ export default function Warranties() {
     if (!cvId || !provider || !startDate || !expiryDate) { setError('Please fill all required fields'); return; }
     setSaving(true);
     setError('');
+    // Look up the user_id for this customer vehicle so the customer can see their warranty in the mobile app
+    const { data: cvData } = await supabase.from('customer_vehicles').select('user_id').eq('id', cvId).single();
+    const isActive = new Date(expiryDate) >= new Date();
     const payload = {
       customer_vehicle_id: cvId,
+      user_id: cvData?.user_id ?? null,
       provider,
       plan_name: planName || 'Standard',
       start_date: startDate,
       expiry_date: expiryDate,
+      status: isActive ? 'ACTIVE' : 'EXPIRED',
       coverage_details: coverage ? coverage.split(',').map(s => s.trim()).filter(Boolean) : [],
     };
     let err;

@@ -24,6 +24,7 @@ export default function CustomerProfile() {
   const [editName, setEditName] = useState('');
   const [editPhone, setEditPhone] = useState('');
   const [editAddress, setEditAddress] = useState('');
+  const [editPostcode, setEditPostcode] = useState('');
   const [savingProfile, setSavingProfile] = useState(false);
 
   // Upload document state
@@ -56,7 +57,8 @@ export default function CustomerProfile() {
     if (!profile) return;
     setEditName(profile.full_name ?? '');
     setEditPhone(profile.phone ?? '');
-    setEditAddress((profile as any).address ?? '');
+    setEditAddress(profile.address ?? '');
+    setEditPostcode(profile.postcode ?? '');
     setEditingProfile(true);
   }
 
@@ -67,6 +69,7 @@ export default function CustomerProfile() {
       full_name: editName || null,
       phone: editPhone || null,
       address: editAddress || null,
+      postcode: editPostcode || null,
     }).eq('id', id);
     setSavingProfile(false);
     if (!error) {
@@ -173,7 +176,11 @@ export default function CustomerProfile() {
                   </div>
                   <div className="form-group" style={{ marginBottom: 0 }}>
                     <label>Address</label>
-                    <input value={editAddress} onChange={e => setEditAddress(e.target.value)} placeholder="123 Main St, Town, AB1 2CD" />
+                    <input value={editAddress} onChange={e => setEditAddress(e.target.value)} placeholder="123 Main St, Town" />
+                  </div>
+                  <div className="form-group" style={{ marginBottom: 0 }}>
+                    <label>Postcode</label>
+                    <input value={editPostcode} onChange={e => setEditPostcode(e.target.value.toUpperCase())} placeholder="AB1 2CD" />
                   </div>
                   <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
                     <button className="btn btn-secondary btn-sm" onClick={() => setEditingProfile(false)}>Cancel</button>
@@ -185,7 +192,8 @@ export default function CustomerProfile() {
                   <div className="info-row"><span className="key">Name</span><span className="val">{profile.full_name || '—'}</span></div>
                   <div className="info-row"><span className="key">Email</span><span className="val">{profile.email || '—'}</span></div>
                   <div className="info-row"><span className="key">Phone</span><span className="val">{profile.phone || '—'}</span></div>
-                  <div className="info-row"><span className="key">Address</span><span className="val">{(profile as any).address || '—'}</span></div>
+                  <div className="info-row"><span className="key">Address</span><span className="val">{profile.address || '—'}</span></div>
+                  <div className="info-row"><span className="key">Postcode</span><span className="val">{profile.postcode || '—'}</span></div>
                   <div className="info-row"><span className="key">Joined</span><span className="val">{new Date(profile.created_at).toLocaleDateString('en-GB')}</span></div>
                   <div className="info-row"><span className="key">Vehicles</span><span className="val">{cvs.length}</span></div>
                 </>
@@ -323,7 +331,7 @@ export default function CustomerProfile() {
                         <td><span className="tag">{b.service_type}</span></td>
                         <td>{new Date(b.preferred_date).toLocaleDateString('en-GB')}</td>
                         <td>{statusBadge(b.status)}</td>
-                        <td style={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.message || '—'}</td>
+                        <td style={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{b.customer_message || '—'}</td>
                         <td>
                           {b.status === 'Pending' && (
                             <div style={{ display: 'flex', gap: 4 }}>

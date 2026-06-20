@@ -126,12 +126,15 @@ export default function Handover() {
 
       // 3. Create warranty record if provided
       if (warrantyProvider && warrantyStart && warrantyExpiry) {
+        const warrantyIsActive = new Date(warrantyExpiry) >= new Date();
         await supabase.from('warranties').insert({
           customer_vehicle_id: cv.id,
+          user_id: customerId,  // Link to customer so they can see it in the mobile app
           provider: warrantyProvider,
           plan_name: warrantyPlan || 'Standard',
           start_date: warrantyStart,
           expiry_date: warrantyExpiry,
+          status: warrantyIsActive ? 'ACTIVE' : 'EXPIRED',
           coverage_details: [],
         });
       }
