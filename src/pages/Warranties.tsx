@@ -80,7 +80,7 @@ export default function Warranties() {
       plan_name: planName || 'Standard',
       start_date: startDate,
       expiry_date: expiryDate,
-      status: isActive ? 'ACTIVE' : 'EXPIRED',
+      status: isActive ? 'Active' : 'Expired',
       coverage_details: coverage ? coverage.split(',').map(s => s.trim()).filter(Boolean) : [],
     };
     let err;

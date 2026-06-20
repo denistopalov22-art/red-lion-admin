@@ -134,7 +134,7 @@ export default function Handover() {
           plan_name: warrantyPlan || 'Standard',
           start_date: warrantyStart,
           expiry_date: warrantyExpiry,
-          status: warrantyIsActive ? 'ACTIVE' : 'EXPIRED',
+          status: warrantyIsActive ? 'Active' : 'Expired',
           coverage_details: [],
         });
       }

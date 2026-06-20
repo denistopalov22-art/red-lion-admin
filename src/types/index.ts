@@ -125,6 +125,6 @@ export interface Warranty {
   end_date: string | null;
   mileage_limit: number | null;
   coverage_details: string[] | string | null;
-  status: 'ACTIVE' | 'EXPIRED' | 'CANCELLED' | 'PENDING' | null;
+  status: 'Active' | 'Expired' | 'Claimed' | 'Cancelled' | null;
   created_at: string;
 }
