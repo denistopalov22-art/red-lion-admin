@@ -295,7 +295,7 @@ export default function CustomerProfile() {
                     </div>
                     <div className="info-row"><span className="key">Start</span><span className="val">{new Date(w.start_date).toLocaleDateString('en-GB')}</span></div>
                     <div className="info-row"><span className="key">Expiry</span><span className="val">{new Date(w.expiry_date).toLocaleDateString('en-GB')}</span></div>
-                    {w.coverage_details?.length > 0 && (
+                    {Array.isArray(w.coverage_details) && w.coverage_details.length > 0 && (
                       <div style={{ marginTop: 8, fontSize: 12, color: 'var(--text3)' }}>{w.coverage_details.join(' · ')}</div>
                     )}
                   </div>
@@ -398,7 +398,7 @@ export default function CustomerProfile() {
                 <div className="form-group form-full">
                   <label>Upload File *</label>
                   <div className="upload-area" onClick={() => document.getElementById('profile-doc-input')?.click()} style={{ cursor: 'pointer' }}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ width: 24, height: 24, marginBottom: 4 }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ width: 24, height: 24, marginBottom: 4 }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2"/></svg>
                     <div style={{ fontSize: 13 }}>{docUploading ? 'Uploading...' : docFileName ? `✓ ${docFileName}` : 'Click to upload PDF or image'}</div>
                     {docFileName && <div style={{ fontSize: 11, color: 'var(--text3)', marginTop: 2 }}>Click to replace</div>}
                     <input id="profile-doc-input" type="file" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" style={{ display: 'none' }} onChange={handleDocUpload} />
