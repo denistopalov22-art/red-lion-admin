@@ -9,6 +9,21 @@ interface WarrantyWithDetails extends Warranty {
   };
 }
 
+const COVERAGE_OPTIONS = [
+  'Engine',
+  'Gearbox',
+  'Turbo',
+  'Electrical',
+  'Suspension',
+  'Brakes',
+  'Air Conditioning',
+  'Fuel System',
+  'Cooling System',
+  'Steering',
+  'Drivetrain',
+  'Other',
+];
+
 export default function Warranties() {
   const [warranties, setWarranties] = useState<WarrantyWithDetails[]>([]);
   const [cvs, setCvs] = useState<{ id: string; registration: string; profiles?: { full_name: string | null } }[]>([]);
@@ -26,7 +41,7 @@ export default function Warranties() {
   const [planName, setPlanName] = useState('');
   const [startDate, setStartDate] = useState('');
   const [expiryDate, setExpiryDate] = useState('');
-  const [coverage, setCoverage] = useState('');
+  const [selectedCoverage, setSelectedCoverage] = useState<string[]>([]);
 
   async function load() {
     const [wRes, cvsRes] = await Promise.all([
@@ -48,9 +63,25 @@ export default function Warranties() {
     return matchSearch && matchFilter;
   });
 
+  function parseCoverage(raw: any): string[] {
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw;
+    if (typeof raw === 'string') {
+      // Handle Postgres array string format: {Engine,Gearbox}
+      return raw.replace(/^\{|\}$/g, '').split(',').map((s: string) => s.trim().replace(/^"|"$/g, '')).filter(Boolean);
+    }
+    return [];
+  }
+
+  function toggleCoverage(item: string) {
+    setSelectedCoverage(prev =>
+      prev.includes(item) ? prev.filter(c => c !== item) : [...prev, item]
+    );
+  }
+
   function openNew() {
     setEditing(null);
-    setCvId(''); setProvider(''); setPlanName(''); setStartDate(''); setExpiryDate(''); setCoverage('');
+    setCvId(''); setProvider(''); setPlanName(''); setStartDate(''); setExpiryDate(''); setSelectedCoverage([]);
     setError('');
     setShowModal(true);
   }
@@ -62,7 +93,7 @@ export default function Warranties() {
     setPlanName(w.plan_name);
     setStartDate(w.start_date);
     setExpiryDate(w.expiry_date);
-    setCoverage(w.coverage_details?.join(', ') ?? '');
+    setSelectedCoverage(parseCoverage(w.coverage_details));
     setError('');
     setShowModal(true);
   }
@@ -83,7 +114,7 @@ export default function Warranties() {
       start_date: startDate,
       expiry_date: expiryDate,
       status: isActive ? 'Active' : 'Expired',
-      coverage_details: coverage ? coverage.split(',').map(s => s.trim()).filter(Boolean) : [],
+      coverage_details: selectedCoverage,
     };
     let err;
     if (editing) {
@@ -138,17 +169,37 @@ export default function Warranties() {
           <div className="table-wrap">
             {loading ? <div className="loading">Loading...</div> : filtered.length === 0 ? <div className="empty">No warranties found</div> : (
               <table>
-                <thead><tr><th>Customer</th><th>Vehicle</th><th>Provider</th><th>Plan</th><th>Expiry</th><th>Status</th><th></th></tr></thead>
+                <thead><tr><th>Customer</th><th>Vehicle</th><th>Provider</th><th>Plan</th><th>Coverage</th><th>Expiry</th><th>Status</th><th></th></tr></thead>
                 <tbody>
                   {filtered.map(w => {
                     const days = daysUntil(w.expiry_date);
                     const isActive = days >= 0;
+                    const coverageItems = parseCoverage(w.coverage_details);
                     return (
                       <tr key={w.id}>
                         <td><strong>{w.customer_vehicles?.profiles?.full_name || '—'}</strong></td>
                         <td>{w.customer_vehicles?.registration || '—'}</td>
                         <td>{w.provider}</td>
                         <td>{w.plan_name}</td>
+                        <td>
+                          {coverageItems.length > 0 ? (
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, maxWidth: 200 }}>
+                              {coverageItems.slice(0, 3).map(c => (
+                                <span key={c} style={{
+                                  fontSize: 11,
+                                  padding: '2px 7px',
+                                  borderRadius: 10,
+                                  background: 'var(--surface2)',
+                                  color: 'var(--text2)',
+                                  whiteSpace: 'nowrap',
+                                }}>{c}</span>
+                              ))}
+                              {coverageItems.length > 3 && (
+                                <span style={{ fontSize: 11, color: 'var(--text3)' }}>+{coverageItems.length - 3} more</span>
+                              )}
+                            </div>
+                          ) : <span style={{ color: 'var(--text3)', fontSize: 12 }}>—</span>}
+                        </td>
                         <td>{new Date(w.expiry_date).toLocaleDateString('en-GB')}</td>
                         <td>
                           {isActive ? (
@@ -203,7 +254,39 @@ export default function Warranties() {
                 <div className="form-group"><label>Plan Name</label><input value={planName} onChange={e => setPlanName(e.target.value)} placeholder="Gold Cover" /></div>
                 <div className="form-group"><label>Start Date *</label><input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} /></div>
                 <div className="form-group"><label>Expiry Date *</label><input type="date" value={expiryDate} onChange={e => setExpiryDate(e.target.value)} /></div>
-                <div className="form-group form-full"><label>Coverage Details (comma-separated)</label><input value={coverage} onChange={e => setCoverage(e.target.value)} placeholder="Engine, Gearbox, Electrics" /></div>
+              </div>
+              <div className="form-group">
+                <label>Coverage ({selectedCoverage.length} selected)</label>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
+                  {COVERAGE_OPTIONS.map(option => {
+                    const selected = selectedCoverage.includes(option);
+                    return (
+                      <button
+                        key={option}
+                        type="button"
+                        onClick={() => toggleCoverage(option)}
+                        style={{
+                          padding: '6px 14px',
+                          borderRadius: 20,
+                          border: `1.5px solid ${selected ? 'var(--primary)' : 'var(--border)'}`,
+                          background: selected ? 'var(--primary)' : 'transparent',
+                          color: selected ? '#fff' : 'var(--text2)',
+                          fontSize: 13,
+                          cursor: 'pointer',
+                          fontWeight: selected ? 600 : 400,
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        {selected && '✓ '}{option}
+                      </button>
+                    );
+                  })}
+                </div>
+                {selectedCoverage.length === 0 && (
+                  <p style={{ fontSize: 12, color: 'var(--text3)', marginTop: 6 }}>
+                    Select the components covered by this warranty.
+                  </p>
+                )}
               </div>
             </div>
             <div className="modal-footer">

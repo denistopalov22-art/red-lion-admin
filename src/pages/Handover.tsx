@@ -30,6 +30,12 @@ export default function Handover() {
   const [warrantyPlan, setWarrantyPlan] = useState('');
   const [warrantyStart, setWarrantyStart] = useState('');
   const [warrantyExpiry, setWarrantyExpiry] = useState('');
+  const [warrantyCoverage, setWarrantyCoverage] = useState<string[]>([]);
+
+  const COVERAGE_OPTIONS = ['Engine','Gearbox','Turbo','Electrical','Suspension','Brakes','Air Conditioning','Fuel System','Cooling System','Steering','Drivetrain','Other'];
+  function toggleWarrantyCoverage(item: string) {
+    setWarrantyCoverage(prev => prev.includes(item) ? prev.filter(c => c !== item) : [...prev, item]);
+  }
   const [docTitle, setDocTitle] = useState('');
   const [docType, setDocType] = useState('Invoice');
   const [docUrl, setDocUrl] = useState('');
@@ -135,7 +141,7 @@ export default function Handover() {
           start_date: warrantyStart,
           expiry_date: warrantyExpiry,
           status: warrantyIsActive ? 'Active' : 'Expired',
-          coverage_details: [],
+          coverage_details: warrantyCoverage,
         });
       }
 
@@ -340,6 +346,36 @@ export default function Handover() {
                     <label>Expiry Date</label>
                     <input type="date" value={warrantyExpiry} onChange={e => setWarrantyExpiry(e.target.value)} />
                   </div>
+                </div>
+                <div className="form-group">
+                  <label>Coverage ({warrantyCoverage.length} selected)</label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
+                    {COVERAGE_OPTIONS.map(option => {
+                      const selected = warrantyCoverage.includes(option);
+                      return (
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() => toggleWarrantyCoverage(option)}
+                          style={{
+                            padding: '6px 14px',
+                            borderRadius: 20,
+                            border: `1.5px solid ${selected ? 'var(--primary)' : 'var(--border)'}`,
+                            background: selected ? 'var(--primary)' : 'transparent',
+                            color: selected ? '#fff' : 'var(--text2)',
+                            fontSize: 13,
+                            cursor: 'pointer',
+                            fontWeight: selected ? 600 : 400,
+                          }}
+                        >
+                          {selected && '✓ '}{option}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {warrantyCoverage.length === 0 && (
+                    <p style={{ fontSize: 12, color: 'var(--text3)', marginTop: 6 }}>Select the components covered by this warranty (optional).</p>
+                  )}
                 </div>
               </div>
             )}
