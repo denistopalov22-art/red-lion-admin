@@ -95,8 +95,10 @@ export default function CustomerProfile() {
     if (!docUrl) { setDocError('Please upload a file first'); return; }
     setSavingDoc(true);
     setDocError('');
+    // Include user_id so the customer can see their document in the mobile app
     const { error } = await supabase.from('documents').insert({
       customer_vehicle_id: docCvId,
+      user_id: id,  // The customer's user ID (from URL params)
       type: docType,
       title: docTitle || docType,
       file_url: docUrl,

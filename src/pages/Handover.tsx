@@ -140,6 +140,7 @@ export default function Handover() {
       if (docUrl || docTitle) {
         await supabase.from('documents').insert({
           customer_vehicle_id: cv.id,
+          user_id: customerId,  // Link to customer so they can see it in the mobile app
           type: docType,
           title: docTitle || docType,
           file_url: docUrl || null,

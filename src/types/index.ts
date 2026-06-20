@@ -91,6 +91,7 @@ export interface ServiceHistory {
 export interface Document {
   id: string;
   customer_vehicle_id: string;
+  user_id: string | null;
   type: string;
   title: string | null;
   description: string | null;

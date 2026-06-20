@@ -66,8 +66,11 @@ export default function Documents() {
     if (!cvId) { setError('Please select a vehicle'); return; }
     setSaving(true);
     setError('');
+    // Look up the user_id for the selected customer vehicle
+    const selectedCv = cvs.find(cv => cv.id === cvId);
     const { error: err } = await supabase.from('documents').insert({
       customer_vehicle_id: cvId,
+      user_id: selectedCv?.user_id || null,
       type,
       title: title || type,
       description: description || null,
