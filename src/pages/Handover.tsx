@@ -3,6 +3,10 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import type { Profile, Vehicle } from '../types';
 
+const COVERAGE_OPTIONS = [
+  'Engine', 'Gearbox', 'Turbo', 'Electrical', 'Suspension', 'Brakes', 'Air Conditioning', 'Other',
+];
+
 const STEPS = ['Customer', 'Vehicle', 'Purchase', 'MOT & Service', 'Warranty', 'Documents', 'Confirm'];
 
 export default function Handover() {
@@ -32,9 +36,10 @@ export default function Handover() {
   const [warrantyExpiry, setWarrantyExpiry] = useState('');
   const [warrantyCoverage, setWarrantyCoverage] = useState<string[]>([]);
 
-  const COVERAGE_OPTIONS = ['Engine','Gearbox','Turbo','Electrical','Suspension','Brakes','Air Conditioning','Fuel System','Cooling System','Steering','Drivetrain','Other'];
   function toggleWarrantyCoverage(item: string) {
-    setWarrantyCoverage(prev => prev.includes(item) ? prev.filter(c => c !== item) : [...prev, item]);
+    setWarrantyCoverage(prev =>
+      prev.includes(item) ? prev.filter(x => x !== item) : [...prev, item]
+    );
   }
   const [docTitle, setDocTitle] = useState('');
   const [docType, setDocType] = useState('Invoice');
@@ -132,16 +137,14 @@ export default function Handover() {
 
       // 3. Create warranty record if provided
       if (warrantyProvider && warrantyStart && warrantyExpiry) {
-        const warrantyIsActive = new Date(warrantyExpiry) >= new Date();
         await supabase.from('warranties').insert({
           customer_vehicle_id: cv.id,
-          user_id: customerId,  // Link to customer so they can see it in the mobile app
           provider: warrantyProvider,
           plan_name: warrantyPlan || 'Standard',
           start_date: warrantyStart,
           expiry_date: warrantyExpiry,
-          status: warrantyIsActive ? 'Active' : 'Expired',
           coverage_details: warrantyCoverage,
+          status: new Date(warrantyExpiry) >= new Date() ? 'Active' : 'Expired',
         });
       }
 
@@ -149,7 +152,6 @@ export default function Handover() {
       if (docUrl || docTitle) {
         await supabase.from('documents').insert({
           customer_vehicle_id: cv.id,
-          user_id: customerId,  // Link to customer so they can see it in the mobile app
           type: docType,
           title: docTitle || docType,
           file_url: docUrl || null,
@@ -329,6 +331,7 @@ export default function Handover() {
             {step === 4 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <h3 style={{ fontSize: 16, fontWeight: 700 }}>Warranty (Optional)</h3>
+                <p style={{ fontSize: 13, color: 'var(--text3)', marginTop: -8 }}>Leave Provider blank to skip warranty creation.</p>
                 <div className="form-grid">
                   <div className="form-group">
                     <label>Provider</label>
@@ -345,37 +348,40 @@ export default function Handover() {
                   <div className="form-group">
                     <label>Expiry Date</label>
                     <input type="date" value={warrantyExpiry} onChange={e => setWarrantyExpiry(e.target.value)} />
+                    {warrantyStart && warrantyExpiry && new Date(warrantyExpiry) <= new Date(warrantyStart) && (
+                      <p style={{ fontSize: 12, color: '#C41E3A', marginTop: 4 }}>Expiry date must be after start date.</p>
+                    )}
                   </div>
-                </div>
-                <div className="form-group">
-                  <label>Coverage ({warrantyCoverage.length} selected)</label>
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
-                    {COVERAGE_OPTIONS.map(option => {
-                      const selected = warrantyCoverage.includes(option);
-                      return (
-                        <button
-                          key={option}
-                          type="button"
-                          onClick={() => toggleWarrantyCoverage(option)}
-                          style={{
-                            padding: '6px 14px',
-                            borderRadius: 20,
-                            border: `1.5px solid ${selected ? 'var(--primary)' : 'var(--border)'}`,
-                            background: selected ? 'var(--primary)' : 'transparent',
-                            color: selected ? '#fff' : 'var(--text2)',
-                            fontSize: 13,
-                            cursor: 'pointer',
-                            fontWeight: selected ? 600 : 400,
-                          }}
-                        >
-                          {selected && '✓ '}{option}
-                        </button>
-                      );
-                    })}
+                  <div className="form-group form-full">
+                    <label>Coverage (select all that apply)</label>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 6 }}>
+                      {COVERAGE_OPTIONS.map(item => {
+                        const selected = warrantyCoverage.includes(item);
+                        return (
+                          <button
+                            key={item}
+                            type="button"
+                            onClick={() => toggleWarrantyCoverage(item)}
+                            style={{
+                              padding: '6px 14px',
+                              borderRadius: 20,
+                              border: `1.5px solid ${selected ? '#C41E3A' : 'var(--border)'}`,
+                              background: selected ? '#C41E3A' : 'var(--surface2)',
+                              color: selected ? '#fff' : 'var(--text2)',
+                              fontSize: 13,
+                              fontWeight: selected ? 600 : 400,
+                              cursor: 'pointer',
+                            }}
+                          >
+                            {selected && <span style={{ marginRight: 4 }}>✓</span>}{item}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {warrantyCoverage.length > 0 && (
+                      <p style={{ fontSize: 12, color: 'var(--text3)', marginTop: 6 }}>Selected: {warrantyCoverage.join(', ')}</p>
+                    )}
                   </div>
-                  {warrantyCoverage.length === 0 && (
-                    <p style={{ fontSize: 12, color: 'var(--text3)', marginTop: 6 }}>Select the components covered by this warranty (optional).</p>
-                  )}
                 </div>
               </div>
             )}
