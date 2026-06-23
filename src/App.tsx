@@ -12,6 +12,7 @@ import Warranties from './pages/Warranties';
 import ServiceHistory from './pages/ServiceHistory';
 import Bookings from './pages/Bookings';
 import Notifications from './pages/Notifications';
+import AutoTrader from './pages/AutoTrader';
 
 function RequireAdmin({ children }: { children: React.ReactNode }) {
   const { user, profile, loading } = useAuth();
@@ -45,6 +46,7 @@ export default function App() {
         <Route path="service-history" element={<ServiceHistory />} />
         <Route path="bookings" element={<Bookings />} />
         <Route path="notifications" element={<Notifications />} />
+        <Route path="autotrader" element={<AutoTrader />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
