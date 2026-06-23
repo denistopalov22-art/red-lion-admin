@@ -10,7 +10,7 @@ interface SyncStatus {
   webhookReceived: number;
 }
 
-const API_BASE = import.meta.env.VITE_API_URL || 'https://3000-i5uz2jx0zfar9d8ys3oqr-57affe15.us2.manus.computer';
+const API_BASE = import.meta.env.VITE_API_URL || 'https://redlionapp-o7ekd5eh.manus.space';
 
 export default function AutoTrader() {
   const [status, setStatus] = useState<SyncStatus | null>(null);
