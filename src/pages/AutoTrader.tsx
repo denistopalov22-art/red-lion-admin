@@ -18,6 +18,7 @@ export default function AutoTrader() {
   const [syncing, setSyncing] = useState(false);
   const [authResult, setAuthResult] = useState<{ authenticated: boolean; timestamp?: string } | null>(null);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [testingAuth, setTestingAuth] = useState(false);
 
   async function fetchStatus() {
     try {
@@ -34,6 +35,8 @@ export default function AutoTrader() {
   }
 
   async function testAuth() {
+    setTestingAuth(true);
+    setMessage(null);
     try {
       const res = await fetch(`${API_BASE}/api/autotrader/test-auth`);
       const data = await res.json();
@@ -45,6 +48,8 @@ export default function AutoTrader() {
       }
     } catch {
       setMessage({ type: 'error', text: 'Could not reach the server. Make sure the app server is running.' });
+    } finally {
+      setTestingAuth(false);
     }
   }
 
@@ -200,12 +205,34 @@ export default function AutoTrader() {
             Test your credentials and manually trigger a full stock sync from AutoTrader.
           </p>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <button className="btn btn-secondary" onClick={testAuth}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 16, height: 16 }}>
-                <path d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
-              </svg>
-              Test Credentials
-            </button>
+            <>
+              <style>{`@keyframes at-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+              <button
+                className="btn btn-secondary"
+                onClick={testAuth}
+                disabled={testingAuth}
+                style={{ minWidth: 160, opacity: testingAuth ? 0.75 : 1 }}
+              >
+                {testingAuth ? (
+                  <>
+                    <svg
+                      viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                      style={{ width: 16, height: 16, animation: 'at-spin 0.8s linear infinite', flexShrink: 0 }}
+                    >
+                      <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                    </svg>
+                    Checking...
+                  </>
+                ) : (
+                  <>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 16, height: 16 }}>
+                      <path d="M9 12l2 2 4-4m6 2a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/>
+                    </svg>
+                    Test Credentials
+                  </>
+                )}
+              </button>
+            </>
             <button
               className="btn btn-primary"
               onClick={triggerSync}
